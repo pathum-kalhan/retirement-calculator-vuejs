@@ -12,15 +12,23 @@
     </v-app-bar>
 
     <v-content>
+
       <v-card>
         <v-card-text>
           <v-row dense>
+
             <v-col md="3" cols="12">
           <v-text-field label="Client name" filled
            v-model="client"
             counter="15"
             :error-messages="clientErrors"
                 @input="$v.client.$touch()"></v-text-field>
+            </v-col>
+            <v-col md="3" cols="12">
+          <v-text-field label="Config name" filled
+           v-model="configName"
+            counter="15"
+           ></v-text-field>
             </v-col>
             <v-col md="3" cols="12">
           <v-text-field label="Current nest egg"
@@ -87,10 +95,14 @@
           </v-autocomplete>
             </v-col>
           </v-row>
+          <p style="color:red;">*Filling all the above filleds before calculate is required.</p>
         </v-card-text>
         <v-card-actions>
-          <v-btn class="success" @click="handleRetirementTbl" :disabled="$v.$invalid">
-            retirement nest egg table
+          <v-btn class="success"
+           @click="handleRetirementTbl(configName)"
+            :disabled="$v.$invalid" block>
+            calculate
+
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -119,10 +131,10 @@
           </table>
         </v-card-text>
       </v-card>
-      <apexchart width="1300" type="line"
+      <apexchart width="100%" type="line"
        :options="chartOptions"
         :series="series"
-         v-if="showTable"></apexchart>
+         v-if="showChart"></apexchart>
     </v-content>
   </v-app>
 </template>
@@ -171,16 +183,15 @@ export default {
         id: 'vuechart-example',
       },
       xaxis: {
-        categories: [1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998],
+        categories: [],
       },
     },
-    series: [{
-      name: 'series-1',
-      data: [30, 40, 35, 50, 49, 60, 70, 91],
-    }],
+    series: [],
     ages: [],
     yearToWork: [],
-    showTable: false,
+    showChart: false,
+    savedConfigs: [],
+    configName: '',
   }),
   computed: {
     clientErrors() {
@@ -287,7 +298,7 @@ export default {
     },
   },
   methods: {
-    handleRetirementTbl() {
+    async handleRetirementTbl(configName) {
       let year = 2020;
       let { age } = this;
       let totalNestEgg = this.curNestEgg;
@@ -321,24 +332,91 @@ export default {
       }
       this.data = data;
 
-      const categories = data.map((e) => e.age);
-      this.chartOptions = {
-        chart: {
-          id: 'vuechart-example',
-        },
-        xaxis: {
-          categories,
-        },
-      };
+      this.savedConfigs.push({
+        name: configName,
+        data,
+      });
 
-      const dataSeries = data.map((e) => Number(e.salary).toFixed(2));
-      this.series = [{
-        name: 'Run 1',
-        data: dataSeries,
-      }];
+      // const categories = data.map((e) => e.age);
+
+      // const dataSeries = data.map((e) => Number(e.salary).toFixed(2));
+      await this.renderchart();
+
 
       this.showTbl = true;
-      this.showTable = true;
+      this.showChart = true;
+    },
+
+    renderchart() {
+      return new Promise((resolve, reject) => {
+        try {
+          // Get the ages range first
+          const agesArr = [];
+          this.savedConfigs.forEach((e) => {
+            const ages = e.data.map((el) => el.age);
+            const min = Math.min(...ages);
+            agesArr.push(min);
+          });
+
+          const minAge = Math.min(...agesArr);
+          const categories = [];
+          for (let index = minAge; index <= 100; index += 1) {
+            categories.push(index);
+          }
+
+          // Getting ages range finished. ***
+
+          const newSavedConfigs = [];
+
+          this.savedConfigs.forEach((e) => {
+            // new config object
+
+
+            const ages = e.data.map((el) => el.age);
+            const min = Math.min(...ages);
+
+            // Find where minimal value's index is
+            // const minValIdx = categories.findIndex((e) => Number(e) === Number(min));
+
+            // Map salaries
+            const salaries = e.data.map((el) => Math.trunc(el.salary));
+
+            if (min === minAge) {
+              newSavedConfigs.push({
+                name: e.name,
+                data: salaries,
+              });
+            }
+            if (minAge < min) {
+              const agesDiff = min - minAge;
+              for (let index = 1; index <= agesDiff; index += 1) {
+                salaries.unshift(null);
+              }
+              newSavedConfigs.push({
+                name: e.name,
+                data: salaries,
+              });
+            }
+          });
+
+
+          this.chartOptions = {
+            chart: {
+              id: 'vuechart-example',
+            },
+            xaxis: {
+              categories,
+            },
+          };
+          // this.savedConfigs = newSavedConfigs;
+          this.series = newSavedConfigs;
+
+
+          resolve();
+        } catch (error) {
+          reject();
+        }
+      });
     },
   },
 };
