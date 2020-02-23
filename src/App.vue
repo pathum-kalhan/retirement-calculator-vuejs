@@ -308,12 +308,12 @@ export default {
 
       for (let index = 1; index <= this.retirementYears; index += 1) {
         totalNestEgg += (salary * (this.salContribution / 100));
+        totalNestEgg += (totalNestEgg * (this.nestEggMultipler / 100));
         const contributionFromSalary = (salary * (Number(this.salContribution) / 100)).toFixed(2);
         data.push({
           year, age, totalNestEgg, contributionFromSalary, salary,
         });
 
-        totalNestEgg += (totalNestEgg * (this.nestEggMultipler / 100));
         year += 1;
         age += 1;
         salary += (salary * (this.salaryMultipler / 100));
