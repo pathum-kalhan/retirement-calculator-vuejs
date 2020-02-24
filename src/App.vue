@@ -14,6 +14,8 @@
     <v-content>
 
       <v-card>
+        <v-form ref="form">
+
         <v-card-text>
           <v-row dense>
 
@@ -86,13 +88,21 @@
           </v-autocomplete>
             </v-col>
             <v-col md="3" cols="12">
-          <v-autocomplete label="Number of years to retire"
+          <v-text-field label="Age of expected retirement"
            filled
            v-model="retirementYears"
-           :items="yearToWork"
+
 
            type="number">
-          </v-autocomplete>
+          </v-text-field>
+          <!-- <h2>Age of expected retirement : {{ageOfRetirement}}</h2> -->
+            </v-col>
+            <v-col md="3" cols="12">
+              <v-text-field label="Age of expected ssn" v-model="ssnAge"
+               filled
+               :error-messages="ssnErrors"
+               @input="$v.ssnAge.$touch()"
+               ></v-text-field>
             </v-col>
           </v-row>
           <p style="color:red;">*Filling all the above filleds before calculate is required.</p>
@@ -100,11 +110,13 @@
         <v-card-actions>
           <v-btn class="success"
            @click="handleRetirementTbl(configName)"
-            :disabled="$v.$invalid" block>
+            :disabled="$v.$invalid">
             calculate
 
           </v-btn>
+          <v-btn @click="handleReset()" outline class="primary">reset</v-btn>
         </v-card-actions>
+        </v-form>
       </v-card>
 
       <v-card v-if="showTbl">
@@ -115,22 +127,26 @@
 
           <table border="1">
             <tr>
-              <th>Year</th>
               <th>Age</th>
+              <th>Year</th>
               <th>Total nest egg</th>
               <th>Added from year</th>
               <th>Salary</th>
-              <th>Add to SSN</th>
               <th>Total SSN Fund</th>
+              <th>Add to SSN</th>
+              <th>SSN Salary</th>
+
             </tr>
             <tr v-for="(item,i) in data" :key="i">
-              <td>{{item.year}}</td>
               <td>{{item.age}}</td>
+              <td>{{item.year}}</td>
               <td>{{Number(item.totalNestEgg).toFixed(2)}}</td>
               <td>{{Number(item.contributionFromSalary).toFixed(2)}}</td>
              <td>{{Number(item.salary).toFixed(2)}}</td>
-              <td>{{Number(item.ssn).toFixed(2)}}</td>
-             <td>{{Number(item.ssnFund).toFixed(2)}}</td>
+             <td>{{item.ssnFund}}</td>
+              <td>{{item.ssn}}</td>
+             <td>{{item.ssnSal}}</td>
+
             </tr>
           </table>
         </v-card-text>
@@ -148,6 +164,7 @@
 import { required, maxLength, decimal } from 'vuelidate/lib/validators';
 
 const percentage = (value) => value > 0 && value <= 100;
+const lessThan = (value, vm) => value <= vm.retirementYears;
 export default {
   name: 'App',
   mounted() {
@@ -169,17 +186,18 @@ export default {
       salaryMultipler: { required, percentage },
       age: { required },
       retirementYears: { required },
+      ssnAge: { required, lessThan },
     };
   },
   data: () => ({
-    client: '',
+    client: 'Kasun',
     curNestEgg: 50000,
     nestEggMultipler: 3,
     curSalary: 70000,
     salContribution: 4,
     salaryMultipler: 10,
     age: 23,
-    retirementYears: 10,
+    retirementYears: 63,
     data: [],
     showTbl: false,
     chartOptions: {
@@ -195,9 +213,16 @@ export default {
     yearToWork: [],
     showChart: false,
     savedConfigs: [],
-    configName: '',
+    configName: 'Snow bird',
+    ssnAge: 62,
   }),
   computed: {
+    ageOfRetirement() {
+      if (this.age && this.retirementYears) {
+        return this.age + this.retirementYears;
+      }
+      return '-';
+    },
     clientErrors() {
       const errors = [];
       if (!this.$v.client.$dirty) return errors;
@@ -300,6 +325,23 @@ export default {
       }
       return errors;
     },
+    ssnErrors() {
+      const errors = [];
+      if (!this.$v.ssnAge.$dirty) return errors;
+      if (
+        !this.$v.ssnAge.required
+        && errors.push('Age of expected SSN is required.')
+      ) {
+        return errors;
+      }
+      if (
+        !this.$v.ssnAge.lessThan
+        && errors.push('Age of expected SSN should be lessthan or equal to retirement age.')
+      ) {
+        return errors;
+      }
+      return errors;
+    },
   },
   methods: {
     async handleRetirementTbl(configName) {
@@ -309,15 +351,32 @@ export default {
       let salary = Number(this.curSalary);
       const data = [];
       let ssnFund = 0;
+      const ssnYearCount = 100 - (this.ssnAge - 1);
+      const retirementYears = this.retirementYears - age;
 
-      for (let index = 1; index <= this.retirementYears; index += 1) {
-        const ssn = salary * (6.2 / 100);
+      for (let index = 1; index <= retirementYears; index += 1) {
+        let ssn = 0;
+        let ssnSal = 0;
         totalNestEgg += (salary * (this.salContribution / 100));
         totalNestEgg += (totalNestEgg * (this.nestEggMultipler / 100));
-        ssnFund += ssn;
         const contributionFromSalary = (salary * (Number(this.salContribution) / 100)).toFixed(2);
+
+        if (age >= this.ssnAge) {
+          // console.log('upper if');
+          ssn = '-';
+          ssnSal = Number(Number(ssnFund / ssnYearCount).toFixed(2));
+
+          ssnFund -= ssnSal;
+        } else {
+          ssn = Number(Number(salary * (6.2 / 100)).toFixed(2));
+          // console.log('upper else', ssnFund);
+          ssnSal = '-';
+          ssnFund += ssn;
+        }
+        ssnFund = Number(Number(ssnFund).toFixed(2));
+
         data.push({
-          year, age, totalNestEgg, contributionFromSalary, salary, ssn, ssnFund,
+          year, age, totalNestEgg, contributionFromSalary, salary, ssn, ssnFund, ssnSal,
         });
 
         year += 1;
@@ -329,10 +388,29 @@ export default {
 
       salary = totalNestEgg / yearsCount;
       for (let index = 1; index <= yearsCount; index += 1) {
-        const ssn = 0;
+        let ssn = 0;
+        let ssnSal = 0;
+        if (age >= this.ssnAge) {
+          // console.log('IF');
+          // console.log('SSN FUND', ssnFund);
+          // console.log('SSN YEARS', ssnYearCount);
+
+          ssn = '-';
+          ssnSal = Number(Number(ssnFund / ssnYearCount).toFixed(2));
+          ssnFund -= ssnSal;
+        } else {
+          ssn = Number(Number(salary * (6.2 / 100)).toFixed(2));
+          ssnSal = '-';
+          // console.log('SSN', ssn);
+          // console.log('SSN', ssnFund);
+          ssnFund = Number(Number(ssnFund) + Number(ssn));
+        }
+
+
+        ssnFund = Number(Number(ssnFund).toFixed(2));
         totalNestEgg -= salary;
         data.push({
-          year, age, contributionFromSalary: 0, salary, totalNestEgg, ssn, ssnFund,
+          year, age, contributionFromSalary: 0, salary, totalNestEgg, ssn, ssnFund, ssnSal,
         });
         year += 1;
         age += 1;
@@ -424,6 +502,10 @@ export default {
           reject();
         }
       });
+    },
+    handleReset() {
+      this.$refs.form.reset();
+      this.$v.$reset();
     },
   },
 };
