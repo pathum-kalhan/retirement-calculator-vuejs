@@ -120,6 +120,8 @@
               <th>Total nest egg</th>
               <th>Added from year</th>
               <th>Salary</th>
+              <th>Add to SSN</th>
+              <th>Total SSN Fund</th>
             </tr>
             <tr v-for="(item,i) in data" :key="i">
               <td>{{item.year}}</td>
@@ -127,6 +129,8 @@
               <td>{{Number(item.totalNestEgg).toFixed(2)}}</td>
               <td>{{Number(item.contributionFromSalary).toFixed(2)}}</td>
              <td>{{Number(item.salary).toFixed(2)}}</td>
+              <td>{{Number(item.ssn).toFixed(2)}}</td>
+             <td>{{Number(item.ssnFund).toFixed(2)}}</td>
             </tr>
           </table>
         </v-card-text>
@@ -304,14 +308,16 @@ export default {
       let totalNestEgg = this.curNestEgg;
       let salary = Number(this.curSalary);
       const data = [];
-
+      let ssnFund = 0;
 
       for (let index = 1; index <= this.retirementYears; index += 1) {
+        const ssn = salary * (6.2 / 100);
         totalNestEgg += (salary * (this.salContribution / 100));
         totalNestEgg += (totalNestEgg * (this.nestEggMultipler / 100));
+        ssnFund += ssn;
         const contributionFromSalary = (salary * (Number(this.salContribution) / 100)).toFixed(2);
         data.push({
-          year, age, totalNestEgg, contributionFromSalary, salary,
+          year, age, totalNestEgg, contributionFromSalary, salary, ssn, ssnFund,
         });
 
         year += 1;
@@ -323,9 +329,10 @@ export default {
 
       salary = totalNestEgg / yearsCount;
       for (let index = 1; index <= yearsCount; index += 1) {
+        const ssn = 0;
         totalNestEgg -= salary;
         data.push({
-          year, age, contributionFromSalary: 0, salary, totalNestEgg,
+          year, age, contributionFromSalary: 0, salary, totalNestEgg, ssn, ssnFund,
         });
         year += 1;
         age += 1;
