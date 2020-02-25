@@ -109,12 +109,12 @@
         </v-card-text>
         <v-card-actions>
           <v-btn class="success"
-           @click="handleRetirementTbl(configName)"
+           @click="handleCalculation(configName)"
             :disabled="$v.$invalid">
             calculate
 
           </v-btn>
-          <v-btn @click="handleReset()" outline class="primary">reset</v-btn>
+          <v-btn @click="handleReset()" outlined color="primary">reset</v-btn>
         </v-card-actions>
         </v-form>
       </v-card>
@@ -129,24 +129,27 @@
             <tr>
               <th>Age</th>
               <th>Year</th>
-              <th>Total nest egg</th>
               <th>Added from year</th>
-              <th>Salary</th>
-              <th>Total SSN Fund</th>
+              <th>Total nest egg</th>
               <th>Add to SSN</th>
+              <th>Total SSN Fund</th>
+
+              <th>Retirement Salary</th>
               <th>SSN Salary</th>
+              <th>Total Salary (SSN + Retiremnet)</th>
+
 
             </tr>
             <tr v-for="(item,i) in data" :key="i">
               <td>{{item.age}}</td>
               <td>{{item.year}}</td>
-              <td>{{Number(item.totalNestEgg).toFixed(2)}}</td>
-              <td>{{Number(item.contributionFromSalary).toFixed(2)}}</td>
-             <td>{{Number(item.salary).toFixed(2)}}</td>
-             <td>{{item.ssnFund}}</td>
-              <td>{{item.ssn}}</td>
-             <td>{{item.ssnSal}}</td>
-
+              <td>{{item.salaryPortion}}</td>
+              <td>{{item.totalFundNestEgg}}</td>
+              <td>{{item.salarySsnPortion}}</td>
+             <td>{{item.totalSsnFund}}</td>
+             <td>{{item.salary}}</td>
+             <td>{{item.ssnIncome}}</td>
+              <td>{{item.totalSalary}}</td>
             </tr>
           </table>
         </v-card-text>
@@ -162,6 +165,7 @@
 <script>
 
 import { required, maxLength, decimal } from 'vuelidate/lib/validators';
+import { calc } from './calcRetirementFunction';
 
 const percentage = (value) => value > 0 && value <= 100;
 const lessThan = (value, vm) => value <= vm.retirementYears;
@@ -353,6 +357,7 @@ export default {
       let ssnFund = 0;
       const ssnYearCount = 100 - (this.ssnAge - 1);
       const retirementYears = this.retirementYears - age;
+      // const ssnSalGlobal =
 
       for (let index = 1; index <= retirementYears; index += 1) {
         let ssn = 0;
@@ -430,6 +435,33 @@ export default {
 
       this.showTbl = true;
       this.showChart = true;
+    },
+
+    async handleCalculation(configName) {
+      try {
+        const data = calc(this.age,
+          this.curNestEgg,
+          this.curSalary,
+          this.salContribution,
+          this.salaryMultipler,
+          this.retirementYears,
+          this.ssnAge);
+        this.data = data;
+
+        this.savedConfigs.push({
+          name: configName,
+          data,
+        });
+
+
+        await this.renderchart();
+
+
+        this.showTbl = true;
+        this.showChart = true;
+      } catch (error) {
+        console.log('error', error);
+      }
     },
 
     renderchart() {
