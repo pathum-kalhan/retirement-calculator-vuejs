@@ -56,7 +56,7 @@
           :error-messages="curSalaryErrors"
           @input="$v.curSalary.$touch()"
            filled
-           v-model="curSalary"
+           v-model.number="curSalary"
            type="number">
            </v-text-field>
             </v-col>
@@ -195,11 +195,11 @@ export default {
   },
   data: () => ({
     client: 'Kasun',
-    curNestEgg: 50000,
-    nestEggMultipler: 3,
+    curNestEgg: 1000000,
+    nestEggMultipler: 9,
     curSalary: 70000,
-    salContribution: 4,
-    salaryMultipler: 10,
+    salContribution: 57,
+    salaryMultipler: 5,
     age: 23,
     retirementYears: 63,
     data: [],
@@ -219,6 +219,7 @@ export default {
     savedConfigs: [],
     configName: 'Snow bird',
     ssnAge: 62,
+    isError: false,
   }),
   computed: {
     ageOfRetirement() {
@@ -460,7 +461,8 @@ export default {
         this.showTbl = true;
         this.showChart = true;
       } catch (error) {
-        console.log('error', error);
+        // console.log('error', error);
+        this.isError = true;
       }
     },
 

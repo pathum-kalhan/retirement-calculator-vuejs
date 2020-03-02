@@ -17,10 +17,12 @@ function calc(Page,
     const retirementAgeSsn = PretirementAgeSsn;
     const retirementYears = 100 - retirementAge;
     const data = [];
-    let fixedRetirementSalary = 0;
-    let fixedSsnIncome = 0;
+    // const fixedRetirementSalary = 0;
+    // const fixedSsnIncome = 0;
 
     let totalSsnFund = 0;
+
+    // let numberOfYears = (retirementYears + 1);
 
     for (let index = age; index <= 100; index += 1) {
       let salaryPortion = 0;
@@ -35,11 +37,18 @@ function calc(Page,
         totalFundNestEgg += salaryPortion;
 
         // SALARY ALSO INCREASE
-        salary += (salaryIncrementPercentage / 100);
+        // SALARY = SALARY + SALARY INCREMENT
+        salary += (salary * (salaryIncrementPercentage / 100));
       } else {
         // IF USER IS RETIRED
-        totalFundNestEgg -= fixedRetirementSalary;
-        salary = fixedRetirementSalary;
+        const thisMonthSalary = (Number(totalFundNestEgg) / Number(retirementYears));
+        salary = Number(thisMonthSalary);
+        // console.log('TOTAL FUND NEST EGG', totalFundNestEgg);
+
+
+        totalFundNestEgg -= salary;
+        // numberOfYears -= 1;
+        // console.log('this month sal', thisMonthSalary);
       }
 
       if (age <= retirementAgeSsn) {
@@ -49,8 +58,9 @@ function calc(Page,
         salarySsnPortion = salary * ((6.2) / 100);
         totalSsnFund += salarySsnPortion;
       } else {
-        totalSsnFund -= fixedSsnIncome;
-        ssnIncome = fixedSsnIncome;
+        const thisYearSsnIncome = totalSsnFund / (100 - retirementAgeSsn);
+        totalSsnFund -= thisYearSsnIncome;
+        ssnIncome = thisYearSsnIncome;
       }
 
       const totalSalary = salary + ssnIncome;
@@ -70,16 +80,16 @@ function calc(Page,
       age += 1;
       year += 1;
 
-      if (age === retirementAge) {
-        fixedRetirementSalary = totalFundNestEgg / retirementYears;
-      }
-      if (age === retirementAgeSsn) {
-        fixedSsnIncome = totalSsnFund / (100 - retirementAgeSsn);
-      }
+      // if (age === retirementAge) {
+      //   fixedRetirementSalary = totalFundNestEgg / retirementYears;
+      // }
+      // if (age === retirementAgeSsn) {
+      //   fixedSsnIncome = totalSsnFund / (100 - retirementAgeSsn);
+      // }
     }
     return data;
   } catch (error) {
-    return [];
+    return error;
   }
 }
 
