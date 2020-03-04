@@ -75,7 +75,7 @@
           <v-text-field label="Estimated salary increment percentage"
 
            filled
-           v-model="salaryMultipler"
+           v-model.number="salaryMultipler"
            :error-messages="salaryMultiplerErrors"
            @input="$v.salaryMultipler.$touch()"
            type="number">
@@ -92,7 +92,7 @@
             <v-col md="3" cols="12">
           <v-text-field label="Age of expected retirement"
            filled
-           v-model="retirementYears"
+           v-model.number="retirementYears"
 
 
            type="number">
@@ -100,10 +100,9 @@
           <!-- <h2>Age of expected retirement : {{ageOfRetirement}}</h2> -->
             </v-col>
             <v-col md="3" cols="12">
-              <v-text-field label="Age of expected ssn" v-model="ssnAge"
+              <v-text-field label="Age of expected ssn" v-model.number="ssnAge"
+              type="number"
                filled
-               :error-messages="ssnErrors"
-               @input="$v.ssnAge.$touch()"
                ></v-text-field>
             </v-col>
           </v-row>
@@ -171,7 +170,7 @@ import { calc } from './calcRetirementFunction';
 // import LineChart from './lineChart';
 
 const percentage = (value) => value > 0 && value <= 100;
-const lessThan = (value, vm) => value <= vm.retirementYears;
+// const lessThan = (value, vm) => value <= vm.retirementYears;
 export default {
   // components: {
   //   LineChart,
@@ -196,7 +195,7 @@ export default {
       salaryMultipler: { required, percentage },
       age: { required },
       retirementYears: { required },
-      ssnAge: { required, lessThan },
+      ssnAge: { required },
     };
   },
   data: () => ({
@@ -233,6 +232,17 @@ export default {
       },
       xaxis: {
         categories: [],
+        title: {
+          text: 'undefined',
+          offsetX: 0,
+          offsetY: 0,
+          style: {
+            color: 'green',
+            fontSize: '12px',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            cssClass: 'apexcharts-xaxis-title',
+          },
+        },
       },
     },
     series: [],
@@ -354,23 +364,23 @@ export default {
       }
       return errors;
     },
-    ssnErrors() {
-      const errors = [];
-      if (!this.$v.ssnAge.$dirty) return errors;
-      if (
-        !this.$v.ssnAge.required
-        && errors.push('Age of expected SSN is required.')
-      ) {
-        return errors;
-      }
-      if (
-        !this.$v.ssnAge.lessThan
-        && errors.push('Age of expected SSN should be lessthan or equal to retirement age.')
-      ) {
-        return errors;
-      }
-      return errors;
-    },
+    // ssnErrors() {
+    //   const errors = [];
+    //   if (!this.$v.ssnAge.$dirty) return errors;
+    //   if (
+    //     !this.$v.ssnAge.required
+    //     && errors.push('Age of expected SSN is required.')
+    //   ) {
+    //     return errors;
+    //   }
+    //   if (
+    //     !this.$v.ssnAge.lessThan
+    //     && errors.push('Age of expected SSN should be lessthan or equal to retirement age.')
+    //   ) {
+    //     return errors;
+    //   }
+    //   return errors;
+    // },
   },
   methods: {
     async handleRetirementTbl(configName) {
@@ -549,6 +559,31 @@ export default {
             },
             xaxis: {
               categories,
+              title: {
+                text: 'Age',
+                offsetX: 0,
+                offsetY: 0,
+                style: {
+                  color: 'green',
+                  fontSize: '12px',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  cssClass: 'apexcharts-xaxis-title',
+                },
+              },
+            },
+            yaxis: {
+
+              title: {
+                text: 'Salary',
+                offsetX: 0,
+                offsetY: 6,
+                style: {
+                  color: 'green',
+                  fontSize: '12px',
+                  fontFamily: 'Helvetica, Arial, sans-serif',
+                  cssClass: 'apexcharts-xaxis-title',
+                },
+              },
             },
           };
           // this.savedConfigs = newSavedConfigs;
@@ -564,6 +599,10 @@ export default {
     handleReset() {
       this.$refs.form.reset();
       this.$v.$reset();
+      this.showChart = false;
+      this.showTbl = false;
+      this.savedConfigs = [];
+      // this.data = [];
     },
   },
 };
