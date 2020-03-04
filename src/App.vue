@@ -17,6 +17,8 @@
         <v-form ref="form">
 
         <v-card-text>
+         <!-- <line-chart :chart-data="datacollection" :options="options"></line-chart> -->
+
           <v-row dense>
 
             <v-col md="3" cols="12">
@@ -166,10 +168,14 @@
 
 import { required, maxLength, decimal } from 'vuelidate/lib/validators';
 import { calc } from './calcRetirementFunction';
+// import LineChart from './lineChart';
 
 const percentage = (value) => value > 0 && value <= 100;
 const lessThan = (value, vm) => value <= vm.retirementYears;
 export default {
+  // components: {
+  //   LineChart,
+  // },
   name: 'App',
   mounted() {
     for (let index = 18; index <= 65; index += 1) {
@@ -194,6 +200,23 @@ export default {
     };
   },
   data: () => ({
+    datacollection: {
+      labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+      datasets: [
+        {
+          label: 'Data One',
+          // backgroundColor: '#f87979',
+          data: [40, 39, 10, 40, 39, 80, 40],
+        },
+        {
+          label: 'Data two',
+          // backgroundColor: '#f87979',
+          data: [35, 42, 89, 34, 39, 80, 43],
+        },
+      ],
+    },
+    options: { responsive: true, maintainAspectRatio: false },
+
     client: 'Kasun',
     curNestEgg: 1000000,
     nestEggMultipler: 9,
@@ -220,6 +243,7 @@ export default {
     configName: 'Snow bird',
     ssnAge: 62,
     isError: false,
+
   }),
   computed: {
     ageOfRetirement() {
