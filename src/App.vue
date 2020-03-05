@@ -17,7 +17,11 @@
         <v-form ref="form">
 
         <v-card-text>
-         <!-- <line-chart :chart-data="datacollection" :options="options"></line-chart> -->
+         <line-chart
+         :chart-data="datacollection"
+         :options="options"
+         v-if="showLineChart">
+         </line-chart>
 
           <v-row dense>
 
@@ -167,14 +171,14 @@
 
 import { required, maxLength, decimal } from 'vuelidate/lib/validators';
 import { calc } from './calcRetirementFunction';
-// import LineChart from './lineChart';
+import LineChart from './lineChart';
 
 const percentage = (value) => value > 0 && value <= 100;
 // const lessThan = (value, vm) => value <= vm.retirementYears;
 export default {
-  // components: {
-  //   LineChart,
-  // },
+  components: {
+    LineChart,
+  },
   name: 'App',
   mounted() {
     for (let index = 18; index <= 65; index += 1) {
@@ -199,6 +203,7 @@ export default {
     };
   },
   data: () => ({
+    showLineChart: false,
     datacollection: {
       labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
       datasets: [
@@ -214,7 +219,18 @@ export default {
         },
       ],
     },
-    options: { responsive: true, maintainAspectRatio: false },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        yAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'probability',
+          },
+        }],
+      },
+    },
 
     client: 'Kasun',
     curNestEgg: 1000000,
@@ -499,11 +515,10 @@ export default {
         this.isError = true;
       }
     },
-
     renderchart() {
       return new Promise((resolve, reject) => {
         try {
-          // Get the ages range first
+          //       // Get the ages range first
           const agesArr = [];
           this.savedConfigs.forEach((e) => {
             const ages = e.data.map((el) => el.age);
@@ -517,10 +532,8 @@ export default {
             categories.push(index);
           }
 
-          // Getting ages range finished. ***
 
           const newSavedConfigs = [];
-
           this.savedConfigs.forEach((e) => {
             // new config object
 
@@ -532,11 +545,11 @@ export default {
             // const minValIdx = categories.findIndex((e) => Number(e) === Number(min));
 
             // Map salaries
-            const salaries = e.data.map((el) => Math.trunc(el.salary));
+            const salaries = e.data.map((el) => Math.trunc(el.totalFundNestEgg));
 
             if (min === minAge) {
               newSavedConfigs.push({
-                name: e.name,
+                label: e.name,
                 data: salaries,
               });
             }
@@ -546,56 +559,122 @@ export default {
                 salaries.unshift(null);
               }
               newSavedConfigs.push({
-                name: e.name,
+                label: e.name,
                 data: salaries,
               });
             }
           });
-
-
-          this.chartOptions = {
-            chart: {
-              id: 'vuechart-example',
-            },
-            xaxis: {
-              categories,
-              title: {
-                text: 'Age',
-                offsetX: 0,
-                offsetY: 0,
-                style: {
-                  color: 'green',
-                  fontSize: '12px',
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  cssClass: 'apexcharts-xaxis-title',
-                },
-              },
-            },
-            yaxis: {
-
-              title: {
-                text: 'Salary',
-                offsetX: 0,
-                offsetY: 6,
-                style: {
-                  color: 'green',
-                  fontSize: '12px',
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  cssClass: 'apexcharts-xaxis-title',
-                },
-              },
-            },
+          this.datacollection = {
+            labels: categories,
+            datasets: newSavedConfigs,
           };
-          // this.savedConfigs = newSavedConfigs;
-          this.series = newSavedConfigs;
 
-
+          //       // Getting ages range finished. ***
+          // this.series = newSavedConfigs;
+          this.showLineChart = true;
           resolve();
         } catch (error) {
           reject();
         }
       });
     },
+
+    // renderchart() {
+    //   return new Promise((resolve, reject) => {
+    //     try {
+    //       // Get the ages range first
+    //       const agesArr = [];
+    //       this.savedConfigs.forEach((e) => {
+    //         const ages = e.data.map((el) => el.age);
+    //         const min = Math.min(...ages);
+    //         agesArr.push(min);
+    //       });
+
+    //       const minAge = Math.min(...agesArr);
+    //       const categories = [];
+    //       for (let index = minAge; index <= 100; index += 1) {
+    //         categories.push(index);
+    //       }
+
+    //       // Getting ages range finished. ***
+
+    //       const newSavedConfigs = [];
+
+    //       this.savedConfigs.forEach((e) => {
+    //         // new config object
+
+
+    //         const ages = e.data.map((el) => el.age);
+    //         const min = Math.min(...ages);
+
+    //         // Find where minimal value's index is
+    //         // const minValIdx = categories.findIndex((e) => Number(e) === Number(min));
+
+    //         // Map salaries
+    //         const salaries = e.data.map((el) => Math.trunc(el.salary));
+
+    //         if (min === minAge) {
+    //           newSavedConfigs.push({
+    //             name: e.name,
+    //             data: salaries,
+    //           });
+    //         }
+    //         if (minAge < min) {
+    //           const agesDiff = min - minAge;
+    //           for (let index = 1; index <= agesDiff; index += 1) {
+    //             salaries.unshift(null);
+    //           }
+    //           newSavedConfigs.push({
+    //             name: e.name,
+    //             data: salaries,
+    //           });
+    //         }
+    //       });
+
+
+    //       this.chartOptions = {
+    //         chart: {
+    //           id: 'vuechart-example',
+    //         },
+    //         xaxis: {
+    //           categories,
+    //           title: {
+    //             text: 'Age',
+    //             offsetX: 0,
+    //             offsetY: 0,
+    //             style: {
+    //               color: 'green',
+    //               fontSize: '12px',
+    //               fontFamily: 'Helvetica, Arial, sans-serif',
+    //               cssClass: 'apexcharts-xaxis-title',
+    //             },
+    //           },
+    //         },
+    //         yaxis: {
+
+    //           title: {
+    //             text: 'Salary',
+    //             offsetX: 0,
+    //             offsetY: 6,
+    //             style: {
+    //               color: 'green',
+    //               fontSize: '12px',
+    //               fontFamily: 'Helvetica, Arial, sans-serif',
+    //               cssClass: 'apexcharts-xaxis-title',
+    //             },
+    //           },
+    //         },
+    //       };
+    //       // this.savedConfigs = newSavedConfigs;
+    //       this.series = newSavedConfigs;
+
+
+    //       resolve();
+    //     } catch (error) {
+    //       reject();
+    //     }
+    //   });
+    // },
     handleReset() {
       this.$refs.form.reset();
       this.$v.$reset();
