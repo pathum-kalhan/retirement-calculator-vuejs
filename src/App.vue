@@ -159,10 +159,10 @@
           </table>
         </v-card-text>
       </v-card>
-      <apexchart width="100%" type="line"
+      <!-- <apexchart width="100%" type="line"
        :options="chartOptions"
         :series="series"
-         v-if="showChart"></apexchart>
+         v-if="showChart"></apexchart> -->
     </v-content>
   </v-app>
 </template>
@@ -226,20 +226,28 @@ export default {
         yAxes: [{
           scaleLabel: {
             display: true,
-            labelString: 'probability',
+            labelString: 'Total nest egg + Total SSN',
+          },
+        }],
+        xAxes: [{
+          scaleLabel: {
+            display: true,
+            labelString: 'Age',
           },
         }],
       },
     },
 
     client: 'Kasun',
-    curNestEgg: 1000000,
-    nestEggMultipler: 9,
-    curSalary: 70000,
-    salContribution: 57,
-    salaryMultipler: 5,
-    age: 23,
-    retirementYears: 63,
+    curNestEgg: 10000,
+    nestEggMultipler: 8,
+    curSalary: 80000,
+    salContribution: 10,
+    salaryMultipler: 2,
+    age: 28,
+    retirementYears: 65,
+    configName: 'Snow bird',
+    ssnAge: 68,
     data: [],
     showTbl: false,
     chartOptions: {
@@ -266,8 +274,6 @@ export default {
     yearToWork: [],
     showChart: false,
     savedConfigs: [],
-    configName: 'Snow bird',
-    ssnAge: 62,
     isError: false,
 
   }),
@@ -545,7 +551,7 @@ export default {
             // const minValIdx = categories.findIndex((e) => Number(e) === Number(min));
 
             // Map salaries
-            const salaries = e.data.map((el) => Math.trunc(el.totalFundNestEgg));
+            const salaries = e.data.map((el) => Math.trunc(el.total));
 
             if (min === minAge) {
               newSavedConfigs.push({
@@ -561,12 +567,21 @@ export default {
               newSavedConfigs.push({
                 label: e.name,
                 data: salaries,
+                // fill: true,
+                backgroundColor: '#e755ba',
+                borderColor: '#dd44ff',
+                // borderDash: [5, 5],
+                // pointBackgroundColor: '#55bae7',
+                // pointBorderColor: '#55bae7',
+                // pointHoverBackgroundColor: '#55bae7',
+                // pointHoverBorderColor: '#55bae7',
               });
             }
           });
           this.datacollection = {
             labels: categories,
             datasets: newSavedConfigs,
+
           };
 
           //       // Getting ages range finished. ***
@@ -676,11 +691,29 @@ export default {
     //   });
     // },
     handleReset() {
-      this.$refs.form.reset();
-      this.$v.$reset();
+      // this.$refs.form.reset();
+      // this.$v.$reset();
       this.showChart = false;
       this.showTbl = false;
       this.savedConfigs = [];
+      this.client = 'Kasun';
+      this.curNestEgg = 10000;
+      this.nestEggMultipler = 8;
+      this.curSalary = 80000;
+      this.salContribution = 10;
+      this.salaryMultipler = 2;
+      this.age = 28;
+      this.retirementYears = 65;
+      this.configName = 'Snow bird';
+      this.ssnAge = 68;
+      this.datacollection = {
+        labels: [],
+        datasets: [],
+
+      };
+
+
+      this.showLineChart = false;
       // this.data = [];
     },
   },

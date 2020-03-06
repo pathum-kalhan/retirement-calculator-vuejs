@@ -57,6 +57,9 @@ function calc(Page,
         // SSN FUND  = SSN FUND + SALARY'S SSN PORTION
         salarySsnPortion = salary * ((6.2) / 100);
         totalSsnFund += salarySsnPortion;
+        if (age > 62) {
+          totalSsnFund += (totalSsnFund * (8 / 100));
+        }
       } else {
         const thisYearSsnIncome = totalSsnFund / (100 - retirementAgeSsn);
         totalSsnFund -= thisYearSsnIncome;
@@ -75,6 +78,7 @@ function calc(Page,
         salarySsnPortion: (salaryPortion).toFixed(2),
         ssnIncome: (ssnIncome).toFixed(2),
         totalSalary: (totalSalary).toFixed(2),
+        total: (totalFundNestEgg + totalSsnFund).toFixed(2),
       });
 
       age += 1;
